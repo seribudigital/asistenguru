@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, FileText, Target, Sparkles, ArrowRight } from 'lucide-react';
+import { BookOpen, FileText, Target, Sparkles, ArrowRight, ClipboardList, CheckCircle } from 'lucide-react';
 
 export default function HomePage() {
     return (
@@ -26,7 +26,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Menu Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 lg:gap-8">
 
                     {/* Card 1: RPP Ringkas */}
                     <Link href="/generator?mode=rpp" className="group">
@@ -75,6 +75,40 @@ export default function HomePage() {
                             </p>
                             <div className="flex items-center text-sm font-semibold text-indigo-600 gap-2 mt-auto">
                                 Buka Generator <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Card 4: Jurnal & Presensi */}
+                    <Link href="/jurnal" className="group">
+                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-full -z-10 group-hover:bg-orange-100/50 transition-colors" />
+                            <div className="w-14 h-14 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                                <ClipboardList className="w-7 h-7" />
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-orange-600 transition-colors">Jurnal &amp; Presensi</h2>
+                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
+                                Ubah catatan kasar menjadi laporan jurnal mengajar resmi secara otomatis.
+                            </p>
+                            <div className="flex items-center text-sm font-semibold text-orange-600 gap-2 mt-auto">
+                                Buka Fitur <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Card 5: Smart Grader */}
+                    <Link href="/grader" className="group">
+                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-rose-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-full -z-10 group-hover:bg-rose-100/50 transition-colors" />
+                            <div className="w-14 h-14 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+                                <CheckCircle className="w-7 h-7" />
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-rose-600 transition-colors">Smart Grader</h2>
+                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
+                                Koreksi jawaban siswa dari foto secara otomatis dengan kecerdasan AI.
+                            </p>
+                            <div className="flex items-center text-sm font-semibold text-rose-600 gap-2 mt-auto">
+                                Buka Fitur <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </div>
                         </div>
                     </Link>

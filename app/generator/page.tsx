@@ -7,7 +7,7 @@
 
 import React, { useState, useRef, Suspense } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { BookOpen, FileText, Copy, Download, Loader2, Sparkles, ChevronDown, ArrowLeft } from 'lucide-react';
+import { BookOpen, FileText, Copy, Download, Loader2, Sparkles, ChevronDown, ArrowLeft, Target } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -138,33 +138,26 @@ function GeneratorContent() {
 
           {/* Header */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
-              <BookOpen className="w-5 h-5 text-white" />
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-gradient-to-br ${formData.mode === 'rpp_ringkas' ? 'from-emerald-500 to-emerald-600' :
+                formData.mode === 'modul_komprehensif' ? 'from-teal-500 to-teal-600' :
+                  'from-indigo-500 to-indigo-600'
+              }`}>
+              {formData.mode === 'rpp_ringkas' && <FileText className="w-5 h-5 text-white" />}
+              {formData.mode === 'modul_komprehensif' && <BookOpen className="w-5 h-5 text-white" />}
+              {formData.mode === 'hots' && <Target className="w-5 h-5 text-white" />}
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight text-slate-900">CogniEdu</h1>
+              <h1 className="text-xl font-semibold tracking-tight text-slate-900">
+                {formData.mode === 'rpp_ringkas' ? 'RPP Ringkas' :
+                  formData.mode === 'modul_komprehensif' ? 'Modul Ajar' :
+                    'Soal Evaluasi'}
+              </h1>
               <p className="text-[11px] font-medium text-slate-500 uppercase tracking-widest">Asisten Guru</p>
             </div>
           </div>
 
           {/* Form Input */}
           <form onSubmit={handleGenerate} className="flex-1 flex flex-col gap-6">
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Mode Asisten</label>
-              <div className="relative">
-                <select
-                  className="w-full appearance-none bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 block p-3 pr-10 transition-colors cursor-pointer"
-                  value={formData.mode}
-                  onChange={(e) => setFormData({ ...formData, mode: e.target.value })}
-                >
-                  <option value="rpp_ringkas">Buat RPP (Ringkas)</option>
-                  <option value="modul_komprehensif">Buat Modul Ajar (Komprehensif)</option>
-                  <option value="hots">Buat Soal Evaluasi (HOTS)</option>
-                </select>
-                <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
-              </div>
-            </div>
 
             {/* Segmented Control Instansi */}
             <div className="space-y-2">
