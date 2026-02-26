@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CogniEdu - Asisten Guru AI
 
-## Getting Started
+CogniEdu adalah aplikasi asisten pintar berbasis *Artificial Intelligence* (AI) terintegrasi yang dirancang khusus untuk membantu meringankan beban kerja guru di Indonesia. Aplikasi ini mampu membuat berbagai kelengkapan administrasi dan evaluasi pembelajaran secara otomatis, cepat, dan disesuaikan dengan Kurikulum Merdeka atau Kurikulum Madrasah.
 
-First, run the development server:
+## ✨ Fitur Utama
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **📝 RPP Ringkas:** Hasilkan Rencana Pelaksanaan Pembelajaran (RPP) harian yang terstruktur.
+- **📚 Modul Ajar:** Buat Modul Ajar komprehensif lengkap dengan materi pendukung dan Lembar Kerja Peserta Didik (LKPD).
+- **🎯 Soal Evaluasi:** Otomasi pembuatan paket soal *Higher Order Thinking Skills* (HOTS) berupa pilihan ganda dan esai beserta kunci jawabannya.
+- **📋 Jurnal & Presensi:** Ubah catatan kasar harian menjadi laporan jurnal mengajar resmi secara instan.
+- **✅ Smart Grader:** Sistem koreksi jawaban siswa dari foto secara otomatis dengan kecerdasan AI.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Proyek ini dibangun menggunakan teknologi web modern:
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router)
+- **Library UI:** [React 19](https://react.dev/)
+- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Ikonografi:** [Lucide React](https://lucide.dev/)
+- **Markdown Renderer:** `react-markdown`
+- **AI Integration:** [Google GenAI SDK](https://github.com/google/genai-js) (Model Gemini)
+- **Bahasa:** TypeScript
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Cara Menjalankan Secara Lokal
 
-## Learn More
+Ikuti langkah-langkah di bawah ini untuk menjalankan proyek CogniEdu di komputer Anda:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone Repository (Opsional jika sudah ada)**
+   ```bash
+   git clone https://github.com/seribudigital/asistenguru.git
+   cd asisten-guru
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Instal Dependensi**
+   Pastikan Anda telah menginstal [Node.js](https://nodejs.org/) (disarankan versi LTS).
+   ```bash
+   npm install
+   # atau
+   yarn install
+   # atau
+   pnpm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Konfigurasi Environment Variables**
+   Buat atau edit file bernama `.env.local` di *root directory* proyek, lalu tambahkan API Key dari Google Gemini Anda:
+   ```env
+   GEMINI_API_KEY=api_key_gemini_anda_di_sini
+   ```
 
-## Deploy on Vercel
+4. **Jalankan Development Server**
+   ```bash
+   npm run dev
+   # atau
+   yarn dev
+   # atau
+   pnpm dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. **Akses Aplikasi**
+   Buka browser Anda dan akses [http://localhost:3000](http://localhost:3000) untuk mulai menggunakan CogniEdu.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Dibuat untuk memajukan pendidikan Indonesia.* 🇮🇩
