@@ -1,8 +1,46 @@
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, FileText, Target, Sparkles, ArrowRight, ClipboardList, CheckCircle } from 'lucide-react';
+import { BookOpen, FileText, Target, Sparkles, ClipboardList, CheckCircle } from 'lucide-react';
+import FeatureCard, { ColorTheme } from '@/components/FeatureCard';
 
 export default function HomePage() {
+    const features = [
+        {
+            href: "/generator?mode=rpp",
+            title: "RPP Ringkas",
+            description: "Buat Rencana Pelaksanaan Pembelajaran harian yang padat dan terstruktur.",
+            icon: FileText,
+            colorTheme: "emerald" as ColorTheme
+        },
+        {
+            href: "/generator?mode=modul",
+            title: "Modul Ajar",
+            description: "Buat Modul Ajar komprehensif lengkap dengan materi pendukung dan LKPD.",
+            icon: BookOpen,
+            colorTheme: "teal" as ColorTheme
+        },
+        {
+            href: "/generator?mode=soal",
+            title: "Soal Evaluasi",
+            description: "Buat paket soal HOTS pilihan ganda dan esai beserta kunci jawabannya.",
+            icon: Target,
+            colorTheme: "indigo" as ColorTheme
+        },
+        {
+            href: "/jurnal",
+            title: "Jurnal & Presensi",
+            description: "Ubah catatan kasar menjadi laporan jurnal mengajar resmi secara otomatis.",
+            icon: ClipboardList,
+            colorTheme: "orange" as ColorTheme
+        },
+        {
+            href: "/grader",
+            title: "Smart Grader",
+            description: "Koreksi jawaban siswa dari foto secara otomatis dengan kecerdasan AI.",
+            icon: CheckCircle,
+            colorTheme: "rose" as ColorTheme
+        }
+    ];
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
 
@@ -28,90 +66,16 @@ export default function HomePage() {
                 {/* Menu Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 lg:gap-8">
 
-                    {/* Card 1: RPP Ringkas */}
-                    <Link href="/generator?mode=rpp" className="group">
-                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -z-10 group-hover:bg-emerald-100/50 transition-colors" />
-                            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                                <FileText className="w-7 h-7" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors">RPP Ringkas</h2>
-                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
-                                Buat Rencana Pelaksanaan Pembelajaran harian yang padat dan terstruktur.
-                            </p>
-                            <div className="flex items-center text-sm font-semibold text-emerald-600 gap-2 mt-auto">
-                                Buka Generator <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Card 2: Modul Ajar */}
-                    <Link href="/generator?mode=modul" className="group">
-                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-teal-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-bl-full -z-10 group-hover:bg-teal-100/50 transition-colors" />
-                            <div className="w-14 h-14 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                                <BookOpen className="w-7 h-7" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-teal-600 transition-colors">Modul Ajar</h2>
-                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
-                                Buat Modul Ajar komprehensif lengkap dengan materi pendukung dan LKPD.
-                            </p>
-                            <div className="flex items-center text-sm font-semibold text-teal-600 gap-2 mt-auto">
-                                Buka Generator <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Card 3: Soal Evaluasi */}
-                    <Link href="/generator?mode=soal" className="group">
-                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 group-hover:bg-indigo-100/50 transition-colors" />
-                            <div className="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                                <Target className="w-7 h-7" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors">Soal Evaluasi</h2>
-                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
-                                Buat paket soal HOTS pilihan ganda dan esai beserta kunci jawabannya.
-                            </p>
-                            <div className="flex items-center text-sm font-semibold text-indigo-600 gap-2 mt-auto">
-                                Buka Generator <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Card 4: Jurnal & Presensi */}
-                    <Link href="/jurnal" className="group">
-                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-bl-full -z-10 group-hover:bg-orange-100/50 transition-colors" />
-                            <div className="w-14 h-14 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                                <ClipboardList className="w-7 h-7" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-orange-600 transition-colors">Jurnal &amp; Presensi</h2>
-                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
-                                Ubah catatan kasar menjadi laporan jurnal mengajar resmi secara otomatis.
-                            </p>
-                            <div className="flex items-center text-sm font-semibold text-orange-600 gap-2 mt-auto">
-                                Buka Fitur <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Card 5: Smart Grader */}
-                    <Link href="/grader" className="group">
-                        <div className="h-full bg-white rounded-2xl p-8 shadow-sm border border-slate-200/60 hover:shadow-xl hover:shadow-rose-500/10 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-50 rounded-bl-full -z-10 group-hover:bg-rose-100/50 transition-colors" />
-                            <div className="w-14 h-14 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center mb-6 shadow-sm">
-                                <CheckCircle className="w-7 h-7" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-rose-600 transition-colors">Smart Grader</h2>
-                            <p className="text-slate-600 leading-relaxed text-sm mb-6 flex-1">
-                                Koreksi jawaban siswa dari foto secara otomatis dengan kecerdasan AI.
-                            </p>
-                            <div className="flex items-center text-sm font-semibold text-rose-600 gap-2 mt-auto">
-                                Buka Fitur <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    </Link>
+                    {features.map((feat, idx) => (
+                        <FeatureCard
+                            key={idx}
+                            href={feat.href}
+                            title={feat.title}
+                            description={feat.description}
+                            icon={feat.icon}
+                            colorTheme={feat.colorTheme}
+                        />
+                    ))}
 
                 </div>
 
