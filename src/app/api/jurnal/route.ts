@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateWithFallback } from '@/lib/gemini';
+import ai, { MODEL_NAME } from '@/lib/gemini';
 
 export async function POST(req: NextRequest) {
     try {
@@ -36,7 +36,8 @@ ${catatanKasar}
 
 Buatlah Jurnal Pelaksanaan Pembelajaran resmi berdasarkan instruksi sistem dan data input di atas.`;
 
-        const response = await generateWithFallback({
+        const response = await ai.models.generateContent({
+            model: MODEL_NAME,
             contents: prompt,
             config: {
                 systemInstruction: systemInstruction,

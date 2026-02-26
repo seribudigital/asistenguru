@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateWithFallback } from "@/lib/gemini";
+import ai, { MODEL_NAME } from "@/lib/gemini";
 
 export const maxDuration = 60;
 
@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
                 text: "Baca lembar soal ini. Buatkan Kunci Jawaban yang akurat. WAJIB sertakan PEMETAAN TOPIK untuk setiap soal. Tulis dalam plain text biasa tanpa markdown tebal.",
             });
 
-            const response = await generateWithFallback({
+            const response = await ai.models.generateContent({
+                model: MODEL_NAME,
                 contents: [{ role: "user", parts }],
                 config: { temperature: 0.3 },
             });
@@ -92,7 +93,8 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
 }`
             });
 
-            const response = await generateWithFallback({
+            const response = await ai.models.generateContent({
+                model: MODEL_NAME,
                 contents: [{ role: "user", parts }],
                 config: { temperature: 0.2 },
             });
@@ -179,7 +181,8 @@ ATURAN:
 - Jangan gunakan LaTeX.
 - Langsung mulai dari heading laporan.`;
 
-            const response = await generateWithFallback({
+            const response = await ai.models.generateContent({
+                model: MODEL_NAME,
                 contents: prompt,
                 config: { temperature: 0.5 },
             });

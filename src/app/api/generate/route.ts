@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateWithFallback } from '@/lib/gemini';
+import ai, { MODEL_NAME } from '@/lib/gemini';
 
 const KB_MADRASAH = `
 ACUAN: Keputusan Menteri Agama (KMA) Nomor 1503 Tahun 2025.
@@ -108,7 +108,8 @@ Sajikan dalam format yang sangat jelas, pisahkan bagian soal dan bagian kunci ja
         }
 
         // Call Gemini API
-        const response = await generateWithFallback({
+        const response = await ai.models.generateContent({
+            model: MODEL_NAME,
             contents: prompt,
             config: {
                 systemInstruction: systemInstruction,
