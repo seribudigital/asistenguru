@@ -6,7 +6,7 @@ if (!process.env.GEMINI_API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const FALLBACK_MODELS = ['gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+const FALLBACK_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash'];
 
 export async function generateWithFallback(params: any) {
     let lastError: any;
@@ -20,20 +20,14 @@ export async function generateWithFallback(params: any) {
             return response;
         } catch (error: any) {
             lastError = error;
-            const errorMessage = error?.message?.toLowerCase() || '';
-            const status = error?.status;
+            const errorMessage = error?.message || 'Unknown error';
 
-            if (status === 429 || errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('exhausted') || errorMessage.includes('rate limit')) {
-                console.warn(`[Gemini Fallback] Model ${modelName} failed (429/Quota). Trying next model...`);
-                continue;
-            }
-
-            // Jika error lain (misal bad request), langsung throw tanpa fallback
-            throw error;
+            console.warn(`[Gemini Fallback] Model ${modelName} failed: ${errorMessage}. Trying next model...`);
+            continue;
         }
     }
 
-    throw lastError || new Error("Semua model AI gagal diakses (Rate Limit/Quota Exhausted).");
+    throw lastError || new Error("Semua model AI gagal diakses.");
 }
 
 export default ai;
