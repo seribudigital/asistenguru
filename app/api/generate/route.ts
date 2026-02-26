@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
-
-// Inisialisasi GoogleGenAI dengan API Key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import ai from '@/lib/gemini';
 
 const KB_MADRASAH = `
 ACUAN: Keputusan Menteri Agama (KMA) Nomor 1503 Tahun 2025.

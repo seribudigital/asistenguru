@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import ai from "@/lib/gemini";
 
 export const maxDuration = 60;
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: NextRequest) {
     try {
@@ -34,7 +32,7 @@ export async function POST(req: NextRequest) {
             });
 
             const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-2.0-flash",
                 contents: [{ role: "user", parts }],
                 config: { temperature: 0.3 },
             });
@@ -96,7 +94,7 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
             });
 
             const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-2.0-flash",
                 contents: [{ role: "user", parts }],
                 config: { temperature: 0.2 },
             });
@@ -184,7 +182,7 @@ ATURAN:
 - Langsung mulai dari heading laporan.`;
 
             const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model: "gemini-2.0-flash",
                 contents: prompt,
                 config: { temperature: 0.5 },
             });
