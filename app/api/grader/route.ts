@@ -44,9 +44,10 @@ export async function POST(req: NextRequest) {
 
         // === TAHAP 2: GRADE STUDENT ===
         if (action === "GRADE_STUDENT") {
-            const { images, kunciJawaban, namaSiswa } = body as {
+            const { images, kunciJawaban, aturanBobot, namaSiswa } = body as {
                 images: { data: string; mimeType: string }[];
                 kunciJawaban: string;
+                aturanBobot?: string;
                 namaSiswa: string;
             };
 
@@ -65,15 +66,32 @@ export async function POST(req: NextRequest) {
             );
 
             parts.push({
-                text: `Anda adalah Asesor Pendidikan. Tugas Anda mengoreksi foto lembar jawaban siswa ini berdasarkan Kunci Jawaban berikut:
+                text: `Anda adalah Asesor Pendidikan. Tugas Anda mengoreksi lembar jawaban siswa (gambar) secara sangat teliti.
 
-${kunciJawaban}
+PEDOMAN PENILAIAN:
 
-Kembalikan HANYA format JSON yang valid tanpa markdown block (\`\`\`json). Struktur JSON wajib persis seperti ini:
-{"nilai": angka_0_100, "rincian": "penjelasan singkat 1 kalimat", "topikLemah": "sebutkan 1-2 topik materi dari soal yang salah dijawab siswa"}
+Kunci Jawaban: ${kunciJawaban}
 
-Jika semua jawaban benar, isi topikLemah dengan "Tidak ada".
-PENTING: Output HANYA JSON murni, tanpa teks lain sebelum atau sesudah JSON.`,
+Aturan Bobot: ${aturanBobot || ""} (Jika kosong, gunakan bobot standar proporsional hingga total 100).
+
+TUGAS ANALISIS:
+
+Hitung berapa Pilihan Ganda (PG) yang Benar dan Salah. Catat kunci vs jawaban siswa.
+
+Beri skor spesifik untuk setiap soal Esai.
+
+Hitung Nilai Akhir (0-100).
+
+WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan struktur persis seperti ini:
+{
+"nilai": angka_total,
+"pgBenar": jumlah_angka_pg_benar,
+"pgSalah": jumlah_angka_pg_salah,
+"detailPG": "String singkat daftar jawaban, misal: 1:Kunci A(Siswa B), 2:Kunci C(Siswa C)",
+"detailEsai": "String rincian nilai, misal: Esai 1=10 poin, Esai 2=15 poin",
+"topikLemah": "Sebutkan 1 topik materi soal yang salah",
+"rincian": "Feedback singkat 1 kalimat"
+}`
             });
 
             const response = await ai.models.generateContent({
@@ -108,6 +126,10 @@ PENTING: Output HANYA JSON murni, tanpa teks lain sebelum atau sesudah JSON.`,
                 result: {
                     nama: namaSiswa,
                     nilai: typeof parsed.nilai === "number" ? parsed.nilai : parseInt(parsed.nilai) || 0,
+                    pgBenar: typeof parsed.pgBenar === "number" ? parsed.pgBenar : parseInt(parsed.pgBenar) || 0,
+                    pgSalah: typeof parsed.pgSalah === "number" ? parsed.pgSalah : parseInt(parsed.pgSalah) || 0,
+                    detailPG: parsed.detailPG || "-",
+                    detailEsai: parsed.detailEsai || "-",
                     rincian: parsed.rincian || "-",
                     topikLemah: parsed.topikLemah || "-",
                 },

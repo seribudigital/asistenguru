@@ -22,6 +22,10 @@ import Link from "next/link";
 interface ClassResult {
     nama: string;
     nilai: number;
+    pgBenar?: number;
+    pgSalah?: number;
+    detailPG?: string;
+    detailEsai?: string;
     rincian: string;
     topikLemah: string;
 }
@@ -30,6 +34,7 @@ export default function GraderPage() {
     // === CORE STATE ===
     const [step, setStep] = useState(1);
     const [kunciJawaban, setKunciJawaban] = useState("");
+    const [aturanBobot, setAturanBobot] = useState("");
     const [classResults, setClassResults] = useState<ClassResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [classAnalysis, setClassAnalysis] = useState("");
@@ -141,6 +146,7 @@ export default function GraderPage() {
                     action: "GRADE_STUDENT",
                     images,
                     kunciJawaban,
+                    aturanBobot,
                     namaSiswa: namaSiswa.trim(),
                 }),
             });
@@ -193,6 +199,51 @@ export default function GraderPage() {
             alert("Terjadi kesalahan jaringan.");
         }
         setIsLoading(false);
+    };
+
+    // === ACTION: Download CSV ===
+    const downloadCSV = () => {
+        if (classResults.length === 0) {
+            alert("Belum ada data untuk diunduh.");
+            return;
+        }
+
+        const headers = [
+            "No",
+            "Nama Siswa",
+            "Nilai Akhir",
+            "PG Benar",
+            "PG Salah",
+            "Detail PG",
+            "Detail Esai",
+            "Topik Terlemah",
+            "Feedback"
+        ];
+
+        const csvRows = classResults.map((r, i) => {
+            return [
+                i + 1,
+                `"${r.nama.replace(/"/g, '""')}"`,
+                r.nilai,
+                r.pgBenar || 0,
+                r.pgSalah || 0,
+                `"${(r.detailPG || "").replace(/"/g, '""')}"`,
+                `"${(r.detailEsai || "").replace(/"/g, '""')}"`,
+                `"${r.topikLemah.replace(/"/g, '""')}"`,
+                `"${r.rincian.replace(/"/g, '""')}"`
+            ].join(",");
+        });
+
+        const csvContent = [headers.join(","), ...csvRows].join("\n");
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "Rekap_Nilai_CogniEdu.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     // ===========================================================
@@ -334,7 +385,7 @@ export default function GraderPage() {
                     {classAnalysis && (
                         <div className="space-y-4">
                             {/* Action buttons */}
-                            <div className="flex gap-3 print:hidden">
+                            <div className="flex flex-wrap gap-3 print:hidden">
                                 <button
                                     onClick={() => window.print()}
                                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 rounded-xl shadow-md shadow-emerald-500/20 transition-all"
@@ -346,6 +397,18 @@ export default function GraderPage() {
                                     className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
                                 >
                                     <ArrowLeft className="w-4 h-4" /> Kembali ke Tabel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setStep(1);
+                                        setClassResults([]);
+                                        setClassAnalysis("");
+                                        setKunciJawaban("");
+                                        setAturanBobot("");
+                                    }}
+                                    className="flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-bold text-rose-600 bg-white border-2 border-rose-500 rounded-xl hover:bg-rose-50 transition-colors shadow-sm w-full lg:w-auto lg:ml-auto"
+                                >
+                                    Mulai Koreksi Kelas Baru (Reset) 🔄
                                 </button>
                             </div>
 
@@ -455,6 +518,7 @@ export default function GraderPage() {
                                         ref={siswaInputRef}
                                         type="file"
                                         accept="image/*"
+                                        capture="environment"
                                         multiple
                                         onChange={(e) =>
                                             handleFileAdd(e, setSiswaFiles, setSiswaPreviews)
@@ -562,6 +626,15 @@ export default function GraderPage() {
                                                             <th className="px-4 py-3 font-semibold text-slate-600 text-center w-20">
                                                                 Nilai
                                                             </th>
+                                                            <th className="px-4 py-3 font-semibold text-slate-600 text-center">
+                                                                PG (B/S)
+                                                            </th>
+                                                            <th className="px-4 py-3 font-semibold text-slate-600">
+                                                                Analisis Jawaban PG
+                                                            </th>
+                                                            <th className="px-4 py-3 font-semibold text-slate-600">
+                                                                Skor Esai
+                                                            </th>
                                                             <th className="px-4 py-3 font-semibold text-slate-600">
                                                                 Topik Terlemah
                                                             </th>
@@ -591,6 +664,15 @@ export default function GraderPage() {
                                                                     >
                                                                         {r.nilai}
                                                                     </span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-center font-bold text-slate-700">
+                                                                    <span className="text-emerald-600">{r.pgBenar || 0}B</span> / <span className="text-rose-600">{r.pgSalah || 0}S</span>
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm text-slate-600">
+                                                                    {r.detailPG || "-"}
+                                                                </td>
+                                                                <td className="px-4 py-3 text-sm text-slate-600">
+                                                                    {r.detailEsai || "-"}
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <span className="inline-block bg-orange-50 text-orange-700 text-xs font-medium px-2 py-1 rounded-md">
@@ -633,14 +715,23 @@ export default function GraderPage() {
                                         </div>
 
                                         {/* Next Step */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setStep(3)}
-                                            className="w-full mt-4 flex items-center justify-center gap-2 text-emerald-700 bg-emerald-100 hover:bg-emerald-200 font-semibold rounded-xl text-sm px-5 py-3 transition-all"
-                                        >
-                                            Selesai &amp; Analisis Kelas →{" "}
-                                            <ArrowRight className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                                            <button
+                                                type="button"
+                                                onClick={downloadCSV}
+                                                className="flex-1 flex items-center justify-center gap-2 text-blue-700 bg-blue-100 hover:bg-blue-200 font-semibold rounded-xl text-sm px-5 py-3 transition-all"
+                                            >
+                                                Download Excel/CSV 📊
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setStep(3)}
+                                                className="flex-1 flex items-center justify-center gap-2 text-emerald-700 bg-emerald-100 hover:bg-emerald-200 font-semibold rounded-xl text-sm px-5 py-3 transition-all"
+                                            >
+                                                Selesai &amp; Analisis Kelas →{" "}
+                                                <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </>
                                 )}
                             </div>
@@ -724,6 +815,7 @@ export default function GraderPage() {
                             ref={inputRef}
                             type="file"
                             accept="image/*"
+                            capture="environment"
                             multiple
                             onChange={(e) => handleFileAdd(e, setFiles, setPreviews)}
                             className="hidden"
@@ -802,6 +894,23 @@ export default function GraderPage() {
                                 ⚠️ Periksa &amp; edit kunci jawaban di atas jika ada yang perlu
                                 dikoreksi sebelum lanjut.
                             </p>
+
+                            {/* Aturan Pembobotan */}
+                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <label className="text-sm font-medium text-slate-700">
+                                    Aturan Pembobotan{" "}
+                                    <span className="text-slate-400 font-normal">
+                                        (Opsional)
+                                    </span>
+                                </label>
+                                <textarea
+                                    rows={4}
+                                    placeholder="Contoh: Pilihan Ganda = 2 poin per soal. Esai = 10 poin per soal. Total Nilai Maksimal = 100."
+                                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 p-3 transition-colors placeholder:text-slate-400"
+                                    value={aturanBobot}
+                                    onChange={(e) => setAturanBobot(e.target.value)}
+                                />
+                            </div>
 
                             {/* Next Step */}
                             <button
