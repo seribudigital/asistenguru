@@ -84,13 +84,14 @@ Hitung Nilai Akhir (0-100).
 
 WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan struktur persis seperti ini:
 {
-"nilai": angka_total,
-"pgBenar": jumlah_angka_pg_benar,
-"pgSalah": jumlah_angka_pg_salah,
-"detailPG": "String singkat daftar jawaban, misal: 1:Kunci A(Siswa B), 2:Kunci C(Siswa C)",
-"detailEsai": "String rincian nilai, misal: Esai 1=10 poin, Esai 2=15 poin",
-"topikLemah": "Sebutkan 1 topik materi soal yang salah",
-"rincian": "Feedback singkat 1 kalimat"
+"nilaiAkhir": angka_total_0_100,
+"pgBenar": jumlah_soal_pg_yang_benar,
+"esaiBenar": total_skor_esai_yang_didapat,
+"tambahan": skor_tambahan_jika_ada_atau_0,
+"rincianPG": {"1": "B", "2": "S", "3": "B"}, // B=Benar, S=Salah untuk tiap nomor PG yang ada
+"rincianEsai": {"1": skor_esai_1, "2": skor_esai_2}, // Angka skor untuk tiap nomor esai
+"topikLemah": "Sebutkan 1 topik materi dari soal yang salah",
+"feedback": "Feedback singkat 1 kalimat"
 }`
             });
 
@@ -113,10 +114,10 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
                     try {
                         parsed = JSON.parse(jsonMatch[0]);
                     } catch {
-                        parsed = { nilai: 0, rincian: rawText.slice(0, 200), topikLemah: "-" };
+                        parsed = { nilaiAkhir: 0, feedback: rawText.slice(0, 200), topikLemah: "-", rincianPG: {}, rincianEsai: {} };
                     }
                 } else {
-                    parsed = { nilai: 0, rincian: rawText.slice(0, 200), topikLemah: "-" };
+                    parsed = { nilaiAkhir: 0, feedback: rawText.slice(0, 200), topikLemah: "-", rincianPG: {}, rincianEsai: {} };
                 }
             }
 
@@ -125,13 +126,14 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
                 success: true,
                 result: {
                     nama: namaSiswa,
-                    nilai: typeof parsed.nilai === "number" ? parsed.nilai : parseInt(parsed.nilai) || 0,
+                    nilaiAkhir: typeof parsed.nilaiAkhir === "number" ? parsed.nilaiAkhir : parseInt(parsed.nilaiAkhir) || 0,
                     pgBenar: typeof parsed.pgBenar === "number" ? parsed.pgBenar : parseInt(parsed.pgBenar) || 0,
-                    pgSalah: typeof parsed.pgSalah === "number" ? parsed.pgSalah : parseInt(parsed.pgSalah) || 0,
-                    detailPG: parsed.detailPG || "-",
-                    detailEsai: parsed.detailEsai || "-",
-                    rincian: parsed.rincian || "-",
+                    esaiBenar: typeof parsed.esaiBenar === "number" ? parsed.esaiBenar : parseInt(parsed.esaiBenar) || 0,
+                    tambahan: typeof parsed.tambahan === "number" ? parsed.tambahan : parseInt(parsed.tambahan) || 0,
+                    rincianPG: parsed.rincianPG || {},
+                    rincianEsai: parsed.rincianEsai || {},
                     topikLemah: parsed.topikLemah || "-",
+                    feedback: parsed.feedback || "-",
                 },
             });
         }
@@ -139,7 +141,7 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
         // === TAHAP 3: ANALYZE CLASS ===
         if (action === "ANALYZE_CLASS") {
             const { classResults } = body as {
-                classResults: { nama: string; nilai: number; rincian: string; topikLemah: string }[];
+                classResults: { nama: string; nilaiAkhir: number; feedback: string; topikLemah: string }[];
             };
 
             if (!classResults || classResults.length === 0) {

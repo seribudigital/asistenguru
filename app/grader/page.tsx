@@ -21,13 +21,14 @@ import Link from "next/link";
 
 interface ClassResult {
     nama: string;
-    nilai: number;
-    pgBenar?: number;
-    pgSalah?: number;
-    detailPG?: string;
-    detailEsai?: string;
-    rincian: string;
+    nilaiAkhir: number;
+    pgBenar: number;
+    esaiBenar: number;
+    tambahan: number;
+    rincianPG: Record<string, string>;
+    rincianEsai: Record<string, number>;
     topikLemah: string;
+    feedback: string;
 }
 
 export default function GraderPage() {
@@ -208,30 +209,67 @@ export default function GraderPage() {
             return;
         }
 
+        // Langkah A: Cari tahu nomor soal PG terbanyak dan nomor Esai terbanyak
+        let maxPG = 0;
+        let maxEsai = 0;
+
+        classResults.forEach(result => {
+            const pgKeys = Object.keys(result.rincianPG || {}).map(Number).filter(n => !isNaN(n));
+            const esaiKeys = Object.keys(result.rincianEsai || {}).map(Number).filter(n => !isNaN(n));
+
+            if (pgKeys.length > 0) {
+                maxPG = Math.max(maxPG, ...pgKeys);
+            }
+            if (esaiKeys.length > 0) {
+                maxEsai = Math.max(maxEsai, ...esaiKeys);
+            }
+        });
+
+        // Langkah B: Buat Header CSV dinamis
         const headers = [
             "No",
             "Nama Siswa",
             "Nilai Akhir",
             "PG Benar",
-            "PG Salah",
-            "Detail PG",
-            "Detail Esai",
-            "Topik Terlemah",
-            "Feedback"
+            "Essai Benar",
+            "Tambahan"
         ];
 
+        for (let i = 1; i <= maxPG; i++) {
+            headers.push(`PG ${i}`);
+        }
+        for (let i = 1; i <= maxEsai; i++) {
+            headers.push(`esai ${i}`);
+        }
+
+        headers.push("Topik Terlemah", "Feedback");
+
         const csvRows = classResults.map((r, i) => {
-            return [
+            const row = [
                 i + 1,
                 `"${r.nama.replace(/"/g, '""')}"`,
-                r.nilai,
+                r.nilaiAkhir,
                 r.pgBenar || 0,
-                r.pgSalah || 0,
-                `"${(r.detailPG || "").replace(/"/g, '""')}"`,
-                `"${(r.detailEsai || "").replace(/"/g, '""')}"`,
-                `"${r.topikLemah.replace(/"/g, '""')}"`,
-                `"${r.rincian.replace(/"/g, '""')}"`
-            ].join(",");
+                r.esaiBenar || 0,
+                r.tambahan || 0
+            ];
+
+            // Langkah C: iterasi per nilai key dinamis
+            for (let j = 1; j <= maxPG; j++) {
+                const pgVal = (r.rincianPG && r.rincianPG[String(j)]) ? r.rincianPG[String(j)] : "";
+                row.push(`"${String(pgVal).replace(/"/g, '""')}"`);
+            }
+
+            for (let j = 1; j <= maxEsai; j++) {
+                const esaiVal = (r.rincianEsai && r.rincianEsai[String(j)] !== undefined) ? r.rincianEsai[String(j)] : "";
+                row.push(`"${String(esaiVal).replace(/"/g, '""')}"`);
+            }
+
+            // Langkah D: Gabungkan menjadi valid CSV line
+            row.push(`"${(r.topikLemah || "").replace(/"/g, '""')}"`);
+            row.push(`"${(r.feedback || "").replace(/"/g, '""')}"`);
+
+            return row.join(",");
         });
 
         const csvContent = [headers.join(","), ...csvRows].join("\n");
@@ -518,7 +556,6 @@ export default function GraderPage() {
                                         ref={siswaInputRef}
                                         type="file"
                                         accept="image/*"
-                                        capture="environment"
                                         multiple
                                         onChange={(e) =>
                                             handleFileAdd(e, setSiswaFiles, setSiswaPreviews)
@@ -624,16 +661,13 @@ export default function GraderPage() {
                                                                 Nama Siswa
                                                             </th>
                                                             <th className="px-4 py-3 font-semibold text-slate-600 text-center w-20">
-                                                                Nilai
+                                                                Nilai Akhir
                                                             </th>
                                                             <th className="px-4 py-3 font-semibold text-slate-600 text-center">
-                                                                PG (B/S)
+                                                                PG Benar
                                                             </th>
-                                                            <th className="px-4 py-3 font-semibold text-slate-600">
-                                                                Analisis Jawaban PG
-                                                            </th>
-                                                            <th className="px-4 py-3 font-semibold text-slate-600">
-                                                                Skor Esai
+                                                            <th className="px-4 py-3 font-semibold text-slate-600 text-center">
+                                                                Total Esai
                                                             </th>
                                                             <th className="px-4 py-3 font-semibold text-slate-600">
                                                                 Topik Terlemah
@@ -655,24 +689,21 @@ export default function GraderPage() {
                                                                 </td>
                                                                 <td className="px-4 py-3 text-center">
                                                                     <span
-                                                                        className={`inline-flex items-center justify-center w-12 h-7 rounded-full text-xs font-bold ${r.nilai >= 75
+                                                                        className={`inline-flex items-center justify-center w-12 h-7 rounded-full text-xs font-bold ${r.nilaiAkhir >= 75
                                                                             ? "bg-emerald-100 text-emerald-700"
-                                                                            : r.nilai >= 50
+                                                                            : r.nilaiAkhir >= 50
                                                                                 ? "bg-amber-100 text-amber-700"
                                                                                 : "bg-rose-100 text-rose-700"
                                                                             }`}
                                                                     >
-                                                                        {r.nilai}
+                                                                        {r.nilaiAkhir}
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-4 py-3 text-center font-bold text-slate-700">
-                                                                    <span className="text-emerald-600">{r.pgBenar || 0}B</span> / <span className="text-rose-600">{r.pgSalah || 0}S</span>
+                                                                    <span className="text-emerald-600">{r.pgBenar || 0}</span>
                                                                 </td>
-                                                                <td className="px-4 py-3 text-sm text-slate-600">
-                                                                    {r.detailPG || "-"}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-sm text-slate-600">
-                                                                    {r.detailEsai || "-"}
+                                                                <td className="px-4 py-3 text-center font-bold text-slate-700">
+                                                                    <span className="text-emerald-600">{r.esaiBenar || 0}</span>
                                                                 </td>
                                                                 <td className="px-4 py-3">
                                                                     <span className="inline-block bg-orange-50 text-orange-700 text-xs font-medium px-2 py-1 rounded-md">
@@ -706,8 +737,8 @@ export default function GraderPage() {
                                                     Rata-rata:{" "}
                                                     <span className="font-bold text-slate-900">
                                                         {(
-                                                            classResults.reduce((a, b) => a + b.nilai, 0) /
-                                                            classResults.length
+                                                            classResults.reduce((a, b) => a + (b.nilaiAkhir || 0), 0) /
+                                                            (classResults.length || 1)
                                                         ).toFixed(1)}
                                                     </span>
                                                 </p>
@@ -815,7 +846,6 @@ export default function GraderPage() {
                             ref={inputRef}
                             type="file"
                             accept="image/*"
-                            capture="environment"
                             multiple
                             onChange={(e) => handleFileAdd(e, setFiles, setPreviews)}
                             className="hidden"
