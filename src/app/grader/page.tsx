@@ -21,7 +21,7 @@ import Link from "next/link";
 
 import { downloadCSV } from "@/utils/exportCsv";
 import { filesToBase64 } from "@/utils/fileHelpers";
-import { ClassResult } from "@/types/grader";
+import { ClassResult, MasterKeyItem } from "@/types/grader";
 import StudentTable from "@/components/StudentTable";
 
 export default function GraderPage() {
@@ -32,6 +32,16 @@ export default function GraderPage() {
     const [classResults, setClassResults] = useState<ClassResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [classAnalysis, setClassAnalysis] = useState("");
+
+    // Parse Master Key
+    let parsedMasterKey: MasterKeyItem[] = [];
+    try {
+        if (kunciJawaban) {
+            parsedMasterKey = JSON.parse(kunciJawaban);
+        }
+    } catch (e) {
+        // silent fail
+    }
 
     // Step 1 file state
     const [files, setFiles] = useState<File[]>([]);
@@ -540,7 +550,7 @@ export default function GraderPage() {
                                     </div>
                                 ) : (
                                     <>
-                                        <StudentTable classResults={classResults} removeStudent={removeStudent} />
+                                        <StudentTable classResults={classResults} masterKey={parsedMasterKey} removeStudent={removeStudent} />
 
                                         {/* Next Step */}
                                         <div className="flex flex-col sm:flex-row gap-3 mt-4">
@@ -722,8 +732,8 @@ export default function GraderPage() {
                                 dikoreksi sebelum lanjut.
                             </p>
 
-                            {/* Aturan Pembobotan */}
-                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                            {/* Aturan Pembobotan (Disembunyikan karena bobot masuk ke JSON Master Key) */}
+                            {/* <div className="space-y-3 pt-4 border-t border-slate-100">
                                 <label className="text-sm font-medium text-slate-700">
                                     Aturan Pembobotan{" "}
                                     <span className="text-slate-400 font-normal">
@@ -737,7 +747,7 @@ export default function GraderPage() {
                                     value={aturanBobot}
                                     onChange={(e) => setAturanBobot(e.target.value)}
                                 />
-                            </div>
+                            </div> */}
 
                             {/* Next Step */}
                             <button

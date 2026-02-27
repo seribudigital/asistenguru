@@ -28,16 +28,20 @@ export async function POST(req: NextRequest) {
             );
 
             parts.push({
-                text: "Baca lembar soal ini. Buatkan Kunci Jawaban yang akurat. WAJIB sertakan PEMETAAN TOPIK untuk setiap soal. Tulis dalam plain text biasa tanpa markdown tebal.",
+                text: "Baca lembar soal ini. Buatkan Kunci Jawaban yang akurat. WAJIB sertakan PEMETAAN TOPIK untuk setiap soal. KEMBALIKAN HANYA FORMAT JSON ARRAY MURNI (tanpa backticks/markdown block) dengan struktur persis seperti ini untuk setiap soal:\n[\n  { \"nomor\": 1, \"kunci\": \"A\", \"topik\": \"Biologi Sel\", \"bobot\": 2 },\n  { \"nomor\": 2, \"kunci\": \"C\", \"topik\": \"Genetika\", \"bobot\": 2 }\n]",
             });
 
             const response = await ai.models.generateContent({
                 model: MODEL_NAME,
                 contents: [{ role: "user", parts }],
-                config: { temperature: 0.3 },
+                config: { temperature: 0.1 },
             });
 
-            return NextResponse.json({ success: true, reply: response.text });
+            // Parse output to ensure it's a valid JSON string (strip markdown)
+            const rawText = response.text || "";
+            let cleanedText = rawText.replace(/```json|```/g, "").trim();
+
+            return NextResponse.json({ success: true, reply: cleanedText });
         }
 
         // === TAHAP 2: GRADE STUDENT ===
@@ -68,28 +72,30 @@ export async function POST(req: NextRequest) {
 
 PEDOMAN PENILAIAN:
 
-Kunci Jawaban: ${kunciJawaban}
-
-Aturan Bobot: ${aturanBobot || ""} (Jika kosong, gunakan bobot standar proporsional hingga total 100).
+Kunci Jawaban JSON:
+${kunciJawaban}
 
 TUGAS ANALISIS:
 
-Hitung berapa Pilihan Ganda (PG) yang Benar dan Salah. Catat kunci vs jawaban siswa.
+1. Baca jawaban pilihan ganda siswa dari gambar. Cocokkan dengan Kunci Jawaban.
+2. Hitung berapa Pilihan Ganda (PG) yang Benar dan Salah.
+3. Beri skor spesifik untuk setiap soal Esai (jika ada).
+4. Hitung Nilai Akhir (total skor bobot yang didapat).
 
-Beri skor spesifik untuk setiap soal Esai.
-
-Hitung Nilai Akhir (0-100).
-
-WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan struktur persis seperti ini:
+WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan struktur persis seperti ini:
 {
 "nilaiAkhir": angka_total_0_100,
 "pgBenar": jumlah_soal_pg_yang_benar,
 "esaiBenar": total_skor_esai_yang_didapat,
 "tambahan": skor_tambahan_jika_ada_atau_0,
-"rincianPG": {"1": "B", "2": "S", "3": "B"}, // B=Benar, S=Salah untuk tiap nomor PG yang ada
-"rincianEsai": {"1": skor_esai_1, "2": skor_esai_2}, // Angka skor untuk tiap nomor esai
+"rincianPG": {"1": "B", "2": "S", "3": "B"},
+"rincianEsai": {"1": skor_esai_1, "2": skor_esai_2},
 "topikLemah": "Sebutkan 1 topik materi dari soal yang salah",
-"feedback": "Feedback singkat 1 kalimat"
+"feedback": "Feedback singkat 1 kalimat",
+"jawabanDetail": [
+  { "nomor": 1, "jawaban": "A", "benar": true },
+  { "nomor": 2, "jawaban": "B", "benar": false }
+]
 }`
             });
 
@@ -99,24 +105,14 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
                 config: { temperature: 0.2 },
             });
 
-            const rawText = response.text || "";
+            let rawText = response.text || "";
+            rawText = rawText.replace(/```json|```/g, "").trim();
 
-            // Parse JSON dari output Gemini (handle kemungkinan markdown wrapping)
             let parsed;
             try {
                 parsed = JSON.parse(rawText);
             } catch {
-                // Coba extract JSON dari teks
-                const jsonMatch = rawText.match(/\{[\s\S]*?\}/);
-                if (jsonMatch) {
-                    try {
-                        parsed = JSON.parse(jsonMatch[0]);
-                    } catch {
-                        parsed = { nilaiAkhir: 0, feedback: rawText.slice(0, 200), topikLemah: "-", rincianPG: {}, rincianEsai: {} };
-                    }
-                } else {
-                    parsed = { nilaiAkhir: 0, feedback: rawText.slice(0, 200), topikLemah: "-", rincianPG: {}, rincianEsai: {} };
-                }
+                parsed = { nilaiAkhir: 0, feedback: "Gagal parse AI output.", topikLemah: "-", rincianPG: {}, rincianEsai: {}, jawabanDetail: [] };
             }
 
             // Sisipkan nama siswa dan kembalikan
@@ -132,6 +128,7 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON VALID (tanpa backticks/markdown block) dengan
                     rincianEsai: parsed.rincianEsai || {},
                     topikLemah: parsed.topikLemah || "-",
                     feedback: parsed.feedback || "-",
+                    jawabanDetail: parsed.jawabanDetail || [],
                 },
             });
         }
