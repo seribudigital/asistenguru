@@ -93,26 +93,16 @@ ${kunciJawaban}
 
 TUGAS ANALISIS:
 
-1. Baca jawaban pilihan ganda siswa dari gambar. Cocokkan dengan Kunci Jawaban.
-2. Hitung berapa Pilihan Ganda (PG) yang Benar dan Salah.
-3. Beri skor spesifik untuk setiap soal Esai (jika ada).
-4. Hitung Nilai Akhir (total skor bobot yang didapat).
+1. Baca jawaban pilihan ganda siswa dari gambar.
+2. Ekstrak HANYA nomor soal dan jawaban hurufnya (A/B/C/D/E).
 
 WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan struktur persis seperti ini:
 {
-"nilaiAkhir": angka_total_0_100,
-"pgBenar": jumlah_soal_pg_yang_benar,
-"esaiBenar": total_skor_esai_yang_didapat,
-"tambahan": skor_tambahan_jika_ada_atau_0,
-"rincianPG": {"1": "B", "2": "S", "3": "B"},
-"rincianEsai": {"1": skor_esai_1, "2": skor_esai_2},
-"topikLemah": "Sebutkan 1 topik materi dari soal yang salah",
-"feedback": "Feedback singkat 1 kalimat",
 "jawabanDetail": [
-  { "nomor": 1, "jawaban": "A", "benar": true },
-  { "nomor": 2, "jawaban": "B", "benar": false }
+  { "nomor": 1, "jawaban": "A" },
+  { "nomor": 2, "jawaban": "B" }
 ]
-}`
+}`,
             });
 
             const response = await ai.models.generateContent({
@@ -128,7 +118,7 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan
             try {
                 parsed = JSON.parse(rawText);
             } catch {
-                parsed = { nilaiAkhir: 0, feedback: "Gagal parse AI output.", topikLemah: "-", rincianPG: {}, rincianEsai: {}, jawabanDetail: [] };
+                parsed = { jawabanDetail: [] };
             }
 
             // ===== KALKULASI DETERMINISTIK MENGGUNAKAN JAVASCRIPT =====
@@ -138,11 +128,16 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan
             let finalNilaiAkhir = 0;
             const jawabanDetailLengkap = parsed.jawabanDetail || [];
 
+            // Variabel untuk analisis topik lemah
+            const topicErrors: Record<string, number> = {};
+            let finalTopikLemah = "-";
+            let finalFeedback = "-";
+
             try {
                 const masterKeyArray = JSON.parse(kunciJawaban);
 
                 masterKeyArray.forEach((mk: any) => {
-                    const bobotSoal = typeof mk.bobot === "number" ? mk.bobot : parseInt(mk.bobot) || 0;
+                    const bobotSoal = Number(mk.bobot) || 0;
                     totalBobotMaksimal += bobotSoal;
 
                     const studentAnswer = jawabanDetailLengkap.find((jd: any) => jd.nomor === mk.nomor);
@@ -153,26 +148,50 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan
                         if (isCorrect) {
                             calculatedPgBenar++;
                             totalBobotDidapat += bobotSoal;
+                        } else {
+                            // Hitung untuk topik lemah
+                            if (mk.topik) {
+                                topicErrors[mk.topik] = (topicErrors[mk.topik] || 0) + 1;
+                            }
                         }
+                    } else {
+                        // Jika tidak terjawab, rekam sebagai salah
+                        if (mk.topik) {
+                            topicErrors[mk.topik] = (topicErrors[mk.topik] || 0) + 1;
+                        }
+                        jawabanDetailLengkap.push({ nomor: mk.nomor, jawaban: "-", benar: false });
                     }
                 });
 
                 if (totalBobotMaksimal > 0) {
                     finalNilaiAkhir = Math.round((totalBobotDidapat / totalBobotMaksimal) * 100);
                 }
+
+                // Cari topik yang paling banyak salah
+                let maxErrors = 0;
+                for (const [topic, errors] of Object.entries(topicErrors)) {
+                    if (errors > maxErrors) {
+                        maxErrors = errors;
+                        finalTopikLemah = topic;
+                    }
+                }
             } catch (e) {
-                // Fallback jika gagal parse kunciJawaban
-                calculatedPgBenar = typeof parsed.pgBenar === "number" ? parsed.pgBenar : parseInt(parsed.pgBenar) || 0;
-                finalNilaiAkhir = typeof parsed.nilaiAkhir === "number" ? parsed.nilaiAkhir : parseInt(parsed.nilaiAkhir) || 0;
+                // Fallback jika gagal parse
+                console.warn("Gagal parse masterKey/jawaban", e);
             }
 
-            // Sisipkan skor esai tambahan jika ada
-            let finalEsaiBenar = typeof parsed.esaiBenar === "number" ? parsed.esaiBenar : parseInt(parsed.esaiBenar) || 0;
-            let finalTambahan = typeof parsed.tambahan === "number" ? parsed.tambahan : parseInt(parsed.tambahan) || 0;
+            // Dinamis Feedback
+            if (finalNilaiAkhir >= 80) {
+                finalFeedback = "Kerja yang sangat bagus! Pertahankan hasil belajarmu.";
+            } else if (finalTopikLemah !== "-") {
+                finalFeedback = `Nilai masih di bawah harapan. Silakan pelajari kembali dengan fokus pada materi: ${finalTopikLemah}.`;
+            } else {
+                finalFeedback = "Perbanyak latihan soal untuk meningkatkan pemahaman materi.";
+            }
 
-            // Optional: jika ada tambahan nilai, kita bisa tambahkan ke nilaiAkhir
-            // finalNilaiAkhir += finalEsaiBenar + finalTambahan; 
-            // Namun karena rumus user: (Total Bobot Didapat / Total Bobot Maks) * 100, kita ikuti user.
+            // Sisipkan skor esai tambahan jika ada (saat ini belum ada UI-nya, diset 0)
+            let finalEsaiBenar = 0;
+            let finalTambahan = 0;
 
             // Sisipkan nama siswa dan kembalikan
             return NextResponse.json({
@@ -183,10 +202,10 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan
                     pgBenar: calculatedPgBenar,
                     esaiBenar: finalEsaiBenar,
                     tambahan: finalTambahan,
-                    rincianPG: parsed.rincianPG || {},
-                    rincianEsai: parsed.rincianEsai || {},
-                    topikLemah: parsed.topikLemah || "-",
-                    feedback: parsed.feedback || "-",
+                    rincianPG: {},
+                    rincianEsai: {},
+                    topikLemah: finalTopikLemah,
+                    feedback: finalFeedback,
                     jawabanDetail: jawabanDetailLengkap,
                 },
             });
