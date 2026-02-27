@@ -11,15 +11,13 @@ export const downloadCSV = (classResults: ClassResult[]) => {
     let maxEsai = 0;
 
     classResults.forEach((result) => {
-        const pgKeys = Object.keys(result.rincianPG || {})
-            .map(Number)
-            .filter((n) => !isNaN(n));
+        const jdKeys = (result.jawabanDetail || []).map((jd) => jd.nomor);
         const esaiKeys = Object.keys(result.rincianEsai || {})
             .map(Number)
             .filter((n) => !isNaN(n));
 
-        if (pgKeys.length > 0) {
-            maxPG = Math.max(maxPG, ...pgKeys);
+        if (jdKeys.length > 0) {
+            maxPG = Math.max(maxPG, ...jdKeys);
         }
         if (esaiKeys.length > 0) {
             maxEsai = Math.max(maxEsai, ...esaiKeys);
@@ -57,8 +55,8 @@ export const downloadCSV = (classResults: ClassResult[]) => {
 
         // Langkah C: iterasi per nilai key dinamis
         for (let j = 1; j <= maxPG; j++) {
-            const pgVal =
-                r.rincianPG && r.rincianPG[String(j)] ? r.rincianPG[String(j)] : "";
+            const detailAnswer = (r.jawabanDetail || []).find((jd) => jd.nomor === j);
+            const pgVal = detailAnswer ? detailAnswer.jawaban : "";
             row.push(`"${String(pgVal).replace(/"/g, '""')}"`);
         }
 

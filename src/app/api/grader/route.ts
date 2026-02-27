@@ -131,20 +131,63 @@ WAJIB KEMBALIKAN HANYA FORMAT JSON MURNI (tanpa backticks/markdown block) dengan
                 parsed = { nilaiAkhir: 0, feedback: "Gagal parse AI output.", topikLemah: "-", rincianPG: {}, rincianEsai: {}, jawabanDetail: [] };
             }
 
+            // ===== KALKULASI DETERMINISTIK MENGGUNAKAN JAVASCRIPT =====
+            let calculatedPgBenar = 0;
+            let totalBobotDidapat = 0;
+            let totalBobotMaksimal = 0;
+            let finalNilaiAkhir = 0;
+            const jawabanDetailLengkap = parsed.jawabanDetail || [];
+
+            try {
+                const masterKeyArray = JSON.parse(kunciJawaban);
+
+                masterKeyArray.forEach((mk: any) => {
+                    const bobotSoal = typeof mk.bobot === "number" ? mk.bobot : parseInt(mk.bobot) || 0;
+                    totalBobotMaksimal += bobotSoal;
+
+                    const studentAnswer = jawabanDetailLengkap.find((jd: any) => jd.nomor === mk.nomor);
+                    if (studentAnswer) {
+                        const isCorrect = (studentAnswer.jawaban || "").trim().toUpperCase() === (mk.kunci || "").trim().toUpperCase();
+                        studentAnswer.benar = isCorrect;
+
+                        if (isCorrect) {
+                            calculatedPgBenar++;
+                            totalBobotDidapat += bobotSoal;
+                        }
+                    }
+                });
+
+                if (totalBobotMaksimal > 0) {
+                    finalNilaiAkhir = Math.round((totalBobotDidapat / totalBobotMaksimal) * 100);
+                }
+            } catch (e) {
+                // Fallback jika gagal parse kunciJawaban
+                calculatedPgBenar = typeof parsed.pgBenar === "number" ? parsed.pgBenar : parseInt(parsed.pgBenar) || 0;
+                finalNilaiAkhir = typeof parsed.nilaiAkhir === "number" ? parsed.nilaiAkhir : parseInt(parsed.nilaiAkhir) || 0;
+            }
+
+            // Sisipkan skor esai tambahan jika ada
+            let finalEsaiBenar = typeof parsed.esaiBenar === "number" ? parsed.esaiBenar : parseInt(parsed.esaiBenar) || 0;
+            let finalTambahan = typeof parsed.tambahan === "number" ? parsed.tambahan : parseInt(parsed.tambahan) || 0;
+
+            // Optional: jika ada tambahan nilai, kita bisa tambahkan ke nilaiAkhir
+            // finalNilaiAkhir += finalEsaiBenar + finalTambahan; 
+            // Namun karena rumus user: (Total Bobot Didapat / Total Bobot Maks) * 100, kita ikuti user.
+
             // Sisipkan nama siswa dan kembalikan
             return NextResponse.json({
                 success: true,
                 result: {
                     nama: namaSiswa,
-                    nilaiAkhir: typeof parsed.nilaiAkhir === "number" ? parsed.nilaiAkhir : parseInt(parsed.nilaiAkhir) || 0,
-                    pgBenar: typeof parsed.pgBenar === "number" ? parsed.pgBenar : parseInt(parsed.pgBenar) || 0,
-                    esaiBenar: typeof parsed.esaiBenar === "number" ? parsed.esaiBenar : parseInt(parsed.esaiBenar) || 0,
-                    tambahan: typeof parsed.tambahan === "number" ? parsed.tambahan : parseInt(parsed.tambahan) || 0,
+                    nilaiAkhir: finalNilaiAkhir,
+                    pgBenar: calculatedPgBenar,
+                    esaiBenar: finalEsaiBenar,
+                    tambahan: finalTambahan,
                     rincianPG: parsed.rincianPG || {},
                     rincianEsai: parsed.rincianEsai || {},
                     topikLemah: parsed.topikLemah || "-",
                     feedback: parsed.feedback || "-",
-                    jawabanDetail: parsed.jawabanDetail || [],
+                    jawabanDetail: jawabanDetailLengkap,
                 },
             });
         }
