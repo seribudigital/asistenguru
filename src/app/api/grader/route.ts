@@ -10,8 +10,9 @@ export async function POST(req: NextRequest) {
 
         // === TAHAP 1: GENERATE MASTER KEY ===
         if (action === "GENERATE_MASTER") {
-            const { images } = body as {
+            const { images, jumlahPG } = body as {
                 images: { data: string; mimeType: string }[];
+                jumlahPG: string;
             };
 
             if (!images || images.length === 0) {
@@ -28,7 +29,17 @@ export async function POST(req: NextRequest) {
             );
 
             parts.push({
-                text: "Baca lembar soal ini. Buatkan Kunci Jawaban yang akurat. WAJIB sertakan PEMETAAN TOPIK untuk setiap soal. KEMBALIKAN HANYA FORMAT JSON ARRAY MURNI (tanpa backticks/markdown block) dengan struktur persis seperti ini untuk setiap soal:\n[\n  { \"nomor\": 1, \"kunci\": \"A\", \"topik\": \"Biologi Sel\", \"bobot\": 2 },\n  { \"nomor\": 2, \"kunci\": \"C\", \"topik\": \"Genetika\", \"bobot\": 2 }\n]",
+                text: `Baca lembar soal ini. Buatkan Kunci Jawaban yang akurat. WAJIB sertakan PEMETAAN TOPIK untuk setiap soal.
+
+Kamu HANYA boleh mengekstrak soal Pilihan Ganda dari nomor 1 sampai nomor ${jumlahPG}.
+BERHENTI membaca dan mengekstrak seketika setelah kamu mencapai nomor ${jumlahPG}.
+Abaikan semua soal Uraian atau Esai. Ciri soal pilihan ganda adalah jawabannya HANYA berupa satu huruf (A, B, C, D, atau E). Jika kamu menemukan nomor yang mengulang dari 1 tetapi jawabannya berupa kalimat, ABAIKAN karena itu adalah soal Esai.
+
+KEMBALIKAN HANYA FORMAT JSON ARRAY MURNI (tanpa backticks/markdown block) dengan struktur persis seperti ini untuk setiap soal:
+[
+  { "nomor": 1, "kunci": "A", "topik": "Biologi Sel", "bobot": 2 },
+  { "nomor": 2, "kunci": "C", "topik": "Genetika", "bobot": 2 }
+]`,
             });
 
             const response = await ai.models.generateContent({
@@ -46,11 +57,12 @@ export async function POST(req: NextRequest) {
 
         // === TAHAP 2: GRADE STUDENT ===
         if (action === "GRADE_STUDENT") {
-            const { images, kunciJawaban, aturanBobot, namaSiswa } = body as {
+            const { images, kunciJawaban, aturanBobot, namaSiswa, jumlahPG } = body as {
                 images: { data: string; mimeType: string }[];
                 kunciJawaban: string;
                 aturanBobot?: string;
                 namaSiswa: string;
+                jumlahPG: string;
             };
 
             if (!images || images.length === 0) {
@@ -69,6 +81,10 @@ export async function POST(req: NextRequest) {
 
             parts.push({
                 text: `Anda adalah Asesor Pendidikan. Tugas Anda mengoreksi lembar jawaban siswa (gambar) secara sangat teliti.
+
+Kamu HANYA boleh mengekstrak soal Pilihan Ganda dari nomor 1 sampai nomor ${jumlahPG}.
+BERHENTI membaca dan mengekstrak seketika setelah kamu mencapai nomor ${jumlahPG}.
+Abaikan semua soal Uraian atau Esai. Ciri soal pilihan ganda adalah jawabannya HANYA berupa satu huruf (A, B, C, D, atau E). Jika kamu menemukan nomor yang mengulang dari 1 tetapi jawabannya berupa kalimat, ABAIKAN karena itu adalah soal Esai.
 
 PEDOMAN PENILAIAN:
 

@@ -32,6 +32,7 @@ export default function GraderPage() {
     const [classResults, setClassResults] = useState<ClassResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [classAnalysis, setClassAnalysis] = useState("");
+    const [jumlahPG, setJumlahPG] = useState("");
 
     // Parse Master Key
     let parsedMasterKey: MasterKeyItem[] = [];
@@ -89,13 +90,17 @@ export default function GraderPage() {
             alert("Upload minimal 1 foto lembar soal.");
             return;
         }
+        if (!jumlahPG.trim()) {
+            alert("Jumlah Soal Pilihan Ganda wajib diisi.");
+            return;
+        }
         setIsLoading(true);
         try {
             const images = await filesToBase64(files);
             const res = await fetch("/api/grader", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "GENERATE_MASTER", images }),
+                body: JSON.stringify({ action: "GENERATE_MASTER", images, jumlahPG }),
             });
             const data = await res.json();
             if (data.success) {
@@ -132,6 +137,7 @@ export default function GraderPage() {
                     kunciJawaban,
                     aturanBobot,
                     namaSiswa: namaSiswa.trim(),
+                    jumlahPG,
                 }),
             });
             const data = await res.json();
@@ -629,6 +635,21 @@ export default function GraderPage() {
                         </p>
                     </div>
 
+                    {/* Jumlah Soal PG */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-medium text-slate-700">
+                            Jumlah Soal Pilihan Ganda (PG) <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            min="1"
+                            placeholder="Misal: 40"
+                            className="w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 p-3 transition-colors placeholder:text-slate-400"
+                            value={jumlahPG}
+                            onChange={(e) => setJumlahPG(e.target.value)}
+                        />
+                    </div>
+
                     {/* File Upload Zone */}
                     <div className="space-y-3">
                         <label className="text-sm font-medium text-slate-700">
@@ -697,7 +718,7 @@ export default function GraderPage() {
                     <button
                         type="button"
                         onClick={handleGenerate}
-                        disabled={isLoading || files.length === 0}
+                        disabled={isLoading || files.length === 0 || !jumlahPG.trim()}
                         className="w-full flex items-center justify-center gap-2 text-white bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-500 hover:to-pink-400 focus:ring-4 focus:ring-rose-500/30 font-semibold rounded-xl text-sm px-5 py-3 shadow-md shadow-rose-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? (
